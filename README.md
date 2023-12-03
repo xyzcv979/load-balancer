@@ -1,6 +1,8 @@
 # load-balancer
 Writing my own load balancer in Go
 
+![workflow](workflow.png)
+
 Coding Challenges - Write Your Own Load Balancer
 
 [Reference](https://codingchallenges.fyi/challenges/challenge-load-balancer/)
