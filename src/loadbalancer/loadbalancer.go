@@ -35,6 +35,11 @@ func readFromBackEndServer(serverConn net.Conn) string {
 func processClientAndServer(clientConn net.Conn) {
 	defer clientConn.Close()
 	clientMsg := server.ReadFromClient(clientConn)
+
+	// Connection from backend server
+	if clientMsg[:15] == "Backend Server:" {
+
+	}
 	// Load balancer acts as client to connect to server and send msg
 	serverConn := writeToBackEndServer(clientMsg)
 	defer serverConn.Close()
@@ -50,6 +55,11 @@ func createBackEndServers(numOfServers int) []net.Listener {
 	return serversArr
 }
 
+// Run loadbalancer
+// Wait for client to connect
+// Wait for servers to connect
+// Send client requests to backend servers
+// Sendd server responses back to client
 func RunLoadBalancer(serverType string, address string) {
 	serv := server.CreateServer(serverType, address)
 	defer serv.Close()

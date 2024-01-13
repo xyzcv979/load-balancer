@@ -16,10 +16,12 @@ The load balancer should forward a request to the backend server and send the re
 
 Tasks:
 - Implement websocket for client and server to allow for HTTP requests
-- Add concurrency to allow for multiple connections from multiple cients
+- Add concurrency to allow for multiple connections from multiple clients
+- Add the load balancer, it talks to the clients as a server but talks to the backend servers as a client
+- Implement multiple backend servers that connect to open ports randomly, when a backend server is connected, the load balancer should know it's host and port
 
 ## Step 2:
-This step involves implementing a scheduling algorithm like round robin.
+This step involves implementing a scheduling algorithm like round-robin.
 
 The goal is to distribute incoming client requests among 2 servers
 

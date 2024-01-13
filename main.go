@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"mymodule/src"
 	"mymodule/src/loadbalancer"
-	"mymodule/src/server"
 	"os"
 	"strconv"
 )
@@ -22,7 +21,7 @@ func main() {
 	if arg1 == "loadbalancer" {
 		loadbalancer.RunLoadBalancer(src.ServerType, addr)
 	} else if arg1 == "server" {
-		server.RunServer()
+		//server.RunServer()
 	} else {
 		fmt.Println("Invalid arg, enter 'client' or 'loadbalancer'")
 	}

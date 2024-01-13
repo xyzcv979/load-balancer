@@ -44,6 +44,8 @@ func ProcessClient(conn net.Conn) {
 	defer conn.Close()
 }
 
+// Server connects to load balancer as a client
+// Then acts as a server for load balancer to communicate with
 func RunServer(address string) {
 	server := CreateServer(src.ServerType, address)
 	defer server.Close()
