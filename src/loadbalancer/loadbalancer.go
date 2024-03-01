@@ -22,29 +22,44 @@ func writeToBackEndServer(msg string) net.Conn {
 	// write msg
 	backendServer := server.CreateServer(src.ServerType, serverHostAndEmptyPort)
 	addr := backendServer.Addr()
-	serverConn := client.ConnectToServer(src.ServerType, addr.String(), msg)
+	serverConn, _ := client.ConnectToServer(src.ServerType, addr.String())
 	client.WriteToServer(serverConn, msg)
 	fmt.Println("Load Balancer sent msg to server: ", msg)
 	return serverConn
 }
 
-func readFromBackEndServer(serverConn net.Conn) string {
+func readFromBackEndServer(serverConn net.Conn, servAddrMap *[]string) string {
 	return client.ReadFromServer(serverConn)
 }
 
-func processClientAndServer(clientConn net.Conn) {
-	defer clientConn.Close()
-	clientMsg := server.ReadFromClient(clientConn)
+func processClientAndServer(serv net.Listener, conn net.Conn, servAddrMap *[]net.Conn) {
+	clientMsg, _ := server.ReadFromClient(conn)
 
 	// Connection from backend server
-	if clientMsg[:15] == "Backend Server:" {
+	if clientMsg == src.ServerMsg {
+		handleServerRegistration(servAddrMap, conn)
+	} else { // client connection
+		defer conn.Close()
+		// process client and send msg to server
 
 	}
-	// Load balancer acts as client to connect to server and send msg
-	serverConn := writeToBackEndServer(clientMsg)
-	defer serverConn.Close()
-	serverRcvMsg := readFromBackEndServer(serverConn)
-	fmt.Println("Load Balancer received msg from server: ", serverRcvMsg)
+	//// Load balancer acts as client to connect to server and send msg
+	//serverConn := writeToBackEndServer(clientMsg)
+	//defer serverConn.Close()
+	//serverRcvMsg := readFromBackEndServer(serverConn)
+	//fmt.Println("Load Balancer received msg from server: ", serverRcvMsg)
+}
+
+func processClient(conn net.Conn, servAddrMap *[]net.Conn, clientMsg string) {
+	// load balancing algorithm to pick server from server address map
+	for _, servConn := range *servAddrMap {
+		_, err := servConn.Write([]byte(clientMsg))
+		if err != nil {
+			fmt.Println("Failed to write to server", err.Error())
+		} else {
+			break
+		}
+	}
 }
 
 func createBackEndServers(numOfServers int) []net.Listener {
@@ -53,6 +68,14 @@ func createBackEndServers(numOfServers int) []net.Listener {
 		serversArr[i] = server.CreateServer(src.ServerType, serverHostAndEmptyPort)
 	}
 	return serversArr
+}
+
+func handleServerRegistration(servAddrMap *[]net.Conn, conn net.Conn) {
+	*servAddrMap = append(*servAddrMap, conn)
+}
+
+func handleHeartbeat() {
+
 }
 
 // Run loadbalancer
@@ -65,12 +88,17 @@ func RunLoadBalancer(serverType string, address string) {
 	defer serv.Close()
 	fmt.Println("Listening on " + address)
 	fmt.Println("Waiting for client...")
+
+	var servAddrMap []net.Conn
 	for {
-		clientConn, err := serv.Accept()
+		conn, err := serv.Accept()
 		if err != nil {
 			fmt.Println("Error loadbalancer running:", err.Error())
 		}
-		fmt.Println("Client connection from: ", clientConn.LocalAddr())
-		go processClientAndServer(clientConn)
+		fmt.Println("Connection from: ", conn.RemoteAddr())
+		processClientAndServer(serv, conn, &servAddrMap)
+		fmt.Println(servAddrMap)
+		// servAddrMap = handleServerRegistration(servAddrMap, conn.RemoteAddr().String())
+
 	}
 }

@@ -9,7 +9,9 @@ package client
 
 import (
 	"fmt"
+	"mymodule/src"
 	"net"
+	"strconv"
 )
 
 func WriteToServer(conn net.Conn, msg string) {
@@ -28,10 +30,20 @@ func ReadFromServer(conn net.Conn) string {
 	return string(buffer[:msgLen])
 }
 
-func ConnectToServer(serverType string, address string, msg string) net.Conn {
+func ConnectToServer(serverType string, address string) (net.Conn, error) {
 	conn, err := net.Dial(serverType, address)
 	if err != nil {
 		fmt.Println("Error client dial", err.Error())
 	}
-	return conn
+	return conn, err
+}
+
+func RunClient() {
+	loadBalancerAddr := src.ServerHost + ":" + strconv.Itoa(src.ServerPort)
+	conn, err := ConnectToServer(src.ServerType, loadBalancerAddr)
+	if err != nil {
+		return
+	}
+	defer conn.Close()
+	WriteToServer(conn, "Test client payload")
 }
